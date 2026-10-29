@@ -1,2 +1,64 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#eef1e9"><title>心屿 · 情绪日记与自我关怀</title><style>*{box-sizing:border-box}body{margin:0;background:#f5f5ee;color:#3f5543;font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;line-height:1.8}main{max-width:960px;margin:0 auto;padding:50px 26px}header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #dfe5d7;padding-bottom:20px}.logo{font-size:25px;letter-spacing:4px}.badge{font-size:11px;background:#e8eddf;padding:5px 11px;border-radius:20px}.hero{margin:65px 0 40px}small{font-size:10px;letter-spacing:3px;color:#91a07e}h1{font-size:clamp(30px,6vw,47px);font-weight:500;line-height:1.5;letter-spacing:2px;margin:18px 0}p{font-size:14px;color:#8b957f}.moods{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}button{font:inherit;color:#607656;cursor:pointer;border:1px solid #d8e0cc;border-radius:13px;background:#fffef9;padding:13px 19px;font-size:13px}button.selected{background:#dce7ce;border-color:#879f71}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.card{background:#fffef9;border:1px solid #e2e7d8;border-radius:20px;padding:26px}h2{font-size:17px;font-weight:500}.number{font:30px Georgia,serif;color:#bbc8aa}.card p{font-size:12px}footer{font-size:11px;color:#9ba58e;margin-top:45px;border-top:1px solid #e1e6d8;padding-top:20px}#response{min-height:28px;font-size:12px;color:#6e855e;margin-top:15px}@media(max-width:600px){.cards{grid-template-columns:1fr}.hero{margin-top:40px}.card{padding:20px}main{padding-top:28px}}</style></head><body><main><header><span class="logo">✧ 心屿</span><span class="badge">公开交互原型 · V0.1</span></header><section class="hero"><small>A LITTLE SPACE FOR YOURSELF</small><h1>每一种情绪，<br>都有被看见的意义。</h1><p>在这里，记录当下的感受，用一个小行动照顾自己。</p><div class="moods" aria-label="此刻的心情"><button>低落</button><button>有点累</button><button>平静</button><button>还不错</button><button>很开心</button></div><p id="response" role="status">先选一个此刻的感受吧。</p></section><div class="cards"><article class="card"><span class="number">01</span><h2>记录此刻</h2><p>用心情、情境和一句话，为今天留一个位置。</p></article><article class="card"><span class="number">02</span><h2>看见变化</h2><p>回看情绪的起伏，留意反复出现的生活情境。</p></article><article class="card"><span class="number">03</span><h2>温柔关怀</h2><p>呼吸、舒缓声景与轻活动，找到适合自己的小行动。</p></article></div><footer>首版框架已上线，完整日记与练习交互正在补充。此页面不收集个人数据，不提供心理诊断或治疗。</footer></main><script>document.querySelectorAll('.moods button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.moods button').forEach(x=>{x.classList.remove('selected');x.setAttribute('aria-pressed','false')});b.classList.add('selected');b.setAttribute('aria-pressed','true');document.getElementById('response').textContent='此刻的「'+b.textContent+'」被看见了。慢慢来，也没关系。';}));</script></body></html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#eef1e9">
+  <meta name="description" content="心屿：记录情绪变化，用一个小行动照顾自己。私人记录保存在当前浏览器。">
+  <title>心屿 · 情绪日记与自我关怀</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='20' fill='%234e6955'/%3E%3Cpath d='M32 48V26M32 35C12 36 12 15 16 14c16 0 19 14 16 21Zm0-7c0-12 9-19 19-17 2 14-7 21-19 20' fill='none' stroke='%23f8edcb' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./styles.css?v=0.2">
+  <script src="./core.js?v=0.2" defer></script>
+  <script src="./app.js?v=0.2" defer></script>
+</head>
+<body>
+<svg class="svg-defs" aria-hidden="true"><defs>
+ <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10H3ZM9 20v-7h6v7"/></symbol>
+ <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 4h13a3 3 0 0 1 3 3v14H6a2 2 0 0 1-2-2ZM4 17h16M8 8h8M8 11h5"/></symbol>
+ <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 3v17h17M8 15v-4m5 4V7m5 8v-6"/></symbol>
+ <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 20c1-7 4-11 12-15M6 17C-1 4 12 2 21 3c1 12-5 18-15 14Z"/></symbol>
+ <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 15v2"/></symbol>
+ <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+ <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
+ <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></symbol>
+ <symbol id="i-wave" viewBox="0 0 24 24"><path d="M3 8c3-5 6 5 9 0s6 5 9 0M3 15c3-5 6 5 9 0s6 5 9 0"/></symbol>
+ <symbol id="i-move" viewBox="0 0 24 24"><circle cx="14" cy="4" r="2"/><path d="m8 22 3-7-3-4 4-4 4 4 5 1M3 10l5-1m3 6 6 2 1 5"/></symbol>
+</defs></svg>
+<div class="app-shell">
+ <aside class="sidebar">
+  <a class="brand" href="#home" aria-label="心屿首页"><span class="brand-mark"><svg><use href="#i-leaf"/></svg></span><span>心屿<small>MIND ISLAND</small></span></a>
+  <div class="sidebar-label">给自己，一点温柔</div>
+  <nav aria-label="主导航">
+   <button class="nav-item active" data-page="home"><svg><use href="#i-home"/></svg><span>今日心情</span><span class="nav-dot"></span></button>
+   <button class="nav-item" data-page="journal"><svg><use href="#i-book"/></svg><span>我的日记</span></button>
+   <button class="nav-item" data-page="insights"><svg><use href="#i-chart"/></svg><span>情绪洞察</span></button>
+   <button class="nav-item" data-page="care"><svg><use href="#i-leaf"/></svg><span>自我关怀</span></button>
+  </nav>
+  <div class="sidebar-note"><div class="tiny-sprout">✧</div><p>每一种情绪，<br>都有被看见的意义。</p><span>慢慢来，也没关系。</span></div>
+  <button class="privacy-button" id="data-button"><svg><use href="#i-lock"/></svg>隐私与数据<span>↗</span></button>
+  <div class="prototype-label">交互原型 · V0.2</div>
+ </aside>
+ <div class="workspace">
+  <header class="topbar"><span id="current-date"></span><div class="top-actions"><button id="mode-toggle" class="mode-toggle" aria-label="切换示例数据与我的记录"></button><span class="local-badge"><svg><use href="#i-lock"/></svg>仅存于此浏览器</span><span class="avatar" aria-hidden="true">屿</span></div></header>
+  <main id="main-content" tabindex="-1"></main>
+  <footer class="site-footer"><span>心屿，陪你照顾每一个当下。</span><div><button data-open-data>隐私与数据</button><button id="support-button">需要更多支持？</button></div></footer>
+ </div>
+</div>
+<dialog id="entry-dialog" aria-labelledby="entry-title">
+ <form id="entry-form">
+  <div class="dialog-head"><div><span class="eyebrow">A MOMENT FOR YOU</span><h2 id="entry-title">此刻，你的心情怎么样？</h2></div><button class="icon-button" type="button" data-close aria-label="关闭">×</button></div>
+  <p class="muted">不用组织语言，先给此刻的感受一个位置。</p>
+  <div id="form-moods" class="mood-row"></div>
+  <fieldset><legend>和什么有关？<span>可选，可多选</span></legend><div id="form-tags" class="tag-options"></div></fieldset>
+  <label for="entry-note" class="field-label">想留下一句话吗？<span>可选</span></label>
+  <textarea id="entry-note" maxlength="500" rows="4" placeholder="发生了什么？你有什么感受或需要？"></textarea>
+  <div class="character-count"><span id="note-count">0</span> / 500</div>
+  <p class="inline-hint" id="entry-hint">只保存在当前浏览器。共用设备请注意隐私，清除浏览器数据会丢失记录。</p>
+  <div class="form-error" id="form-error" role="alert"></div>
+  <div class="dialog-actions"><button class="button secondary" type="button" data-close>先不记录</button><button class="button primary" type="submit">保存此刻 <svg><use href="#i-arrow"/></svg></button></div>
+ </form>
+</dialog>
+<dialog id="care-dialog" aria-labelledby="care-title"><div id="care-dialog-body"></div></dialog>
+<dialog id="info-dialog" aria-labelledby="info-title"><div id="info-dialog-body"></div></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body></html>
