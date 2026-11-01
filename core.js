@@ -42,7 +42,20 @@
     const samples=[ [0,4,['生活','独处'],'午后留了一点时间给自己，慢慢喝完一杯茶。'],[1,3,['工作'],'事情还没有全部做完，不过我允许自己先休息。'],[2,2,['工作','睡眠'],'昨晚睡得有些晚，今天想早点收工。'],[3,4,['社交'],'和朋友聊了很久，原来有些担心可以说出来。'],[4,3,['学业'],'把一个大任务分成了几小步，开始没那么难了。'],[5,2,['工作'],'临时多了一些安排，感觉有一点累。'],[6,5,['运动','生活'],'出去散了步，路上的风让人很舒服。'] ];
     return samples.map(([offset,mood,entryTags,note],i)=>{const d=new Date(now);d.setDate(d.getDate()-offset);return{id:`demo-${i}`,date:d.toISOString(),mood,tags:entryTags,note};});
   }
-  const api={moods,tags,dayKey,validateEntry,summarize,recommend,demoEntries};
+  const emotionWords=['焦虑','委屈','紧绷','疲惫','失落','烦躁','孤单','平静','释然','感激','满足','开心'];
+  function normalizeExtras(entry={}) {
+    const result={...entry,emotionWords:[...new Set(Array.isArray(entry.emotionWords)?entry.emotionWords.filter(w=>emotionWords.includes(w)):[])].slice(0,3),attachments:[]};
+    const ids=new Set();let images=0,audios=0;
+    for(const a of (Array.isArray(entry.attachments)?entry.attachments:[]).slice(0,20)){
+      if(!a||typeof a.id!=='string'||!/^[a-zA-Z0-9_-]{1,90}$/.test(a.id)||ids.has(a.id)||!['image','audio'].includes(a.kind)||typeof a.mime!=='string'||!Number.isFinite(a.size)||a.size<0||a.size>5*1024*1024)continue;
+      if(a.kind==='image'&&(!['image/jpeg','image/png','image/webp'].includes(a.mime)||images>=3))continue;
+      if(a.kind==='audio'&&(!a.mime.startsWith('audio/')||a.mime.length>100||audios>=1))continue;
+      ids.add(a.id);if(a.kind==='image')images++;else audios++;
+      result.attachments.push({id:a.id,kind:a.kind,mime:a.mime,size:Math.round(a.size),name:typeof a.name==='string'?a.name.slice(0,100):'附件',duration:Number.isFinite(a.duration)?Math.max(0,Math.min(36000,Math.round(a.duration))):0});
+    }
+    return result;
+  }
+  const api={moods,tags,dayKey,validateEntry,summarize,recommend,demoEntries,emotionWords,normalizeExtras};
   if (typeof module!=='undefined' && module.exports) module.exports=api;
   root.MindCore=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

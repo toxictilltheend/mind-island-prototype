@@ -7,13 +7,15 @@
   <meta name="description" content="心屿：记录情绪变化，用一个小行动照顾自己。私人记录保存在当前浏览器。">
   <title>心屿 · 把今天轻轻安放</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='20' fill='%234e6955'/%3E%3Cpath d='M32 48V26M32 35C12 36 12 15 16 14c16 0 19 14 16 21Zm0-7c0-12 9-19 19-17 2 14-7 21-19 20' fill='none' stroke='%23f8edcb' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="./styles.css?v=0.5">
-  <script src="./core.js?v=0.5" defer></script>
-  <link rel="stylesheet" href="./garden.css?v=0.5">
-  <script src="./ascii-core.js?v=0.5" defer></script>
-  <script src="./garden-art.js?v=0.5" defer></script>
-  <script src="./island.js?v=0.5" defer></script>
-  <script src="./app.js?v=0.5" defer></script>
+  <link rel="stylesheet" href="./styles.css?v=0.6">
+  <script src="./core.js?v=0.6" defer></script>
+  <link rel="stylesheet" href="./garden.css?v=0.6">
+  <script src="./ascii-core.js?v=0.6" defer></script>
+  <script src="./garden-art.js?v=0.6" defer></script>
+  <link rel="stylesheet" href="./expression.css?v=0.6">
+  <script src="./expression.js?v=0.6" defer></script>
+  <script src="./island.js?v=0.6" defer></script>
+  <script src="./app.js?v=0.6" defer></script>
 </head>
 <body>
 <svg class="svg-defs" aria-hidden="true"><defs>
@@ -33,14 +35,14 @@
   <a class="brand" href="#home" aria-label="心屿首页"><span class="brand-mark" aria-hidden="true"><svg><use href="#i-leaf"/></svg></span><span>心屿<small>MIND ISLAND</small></span></a>
   <div class="sidebar-label">慢一点，也很好</div>
   <nav aria-label="主导航">
-   <button class="nav-item active" data-page="home"><svg><use href="#i-home"/></svg><span>我的小岛</span><span class="nav-dot"></span></button>
-   <button class="nav-item" data-page="journal"><svg><use href="#i-book"/></svg><span>天气标本</span></button>
+   <button class="nav-item active" data-page="home"><svg><use href="#i-home"/></svg><span>今日记录</span><span class="nav-dot"></span></button>
+   <button class="nav-item" data-page="journal"><svg><use href="#i-book"/></svg><span>记录回看</span></button>
    <button class="nav-item" data-page="insights"><svg><use href="#i-chart"/></svg><span>情绪洞察</span></button>
    <button class="nav-item" data-page="care"><svg><use href="#i-leaf"/></svg><span>自我关怀</span></button>
   </nav>
   <div class="sidebar-note"><div class="tiny-sprout">✧</div><p>每一种情绪，<br>都有被看见的意义。</p><span>慢慢来，也没关系。</span></div>
   <button class="privacy-button" id="data-button"><svg><use href="#i-lock"/></svg>隐私与数据<span>↗</span></button>
-  <div class="prototype-label">自然手记 · V0.5</div>
+  <div class="prototype-label">多种表达 · V0.6</div>
  </aside>
  <div class="workspace">
   <header class="topbar"><span id="current-date"></span><div class="top-actions"><button id="mode-toggle" class="mode-toggle" aria-label="切换示例数据与我的记录"></button><span class="local-badge"><svg><use href="#i-lock"/></svg>仅存于此浏览器</span><span class="avatar" aria-hidden="true">屿</span></div></header>
@@ -53,6 +55,7 @@
   <div class="dialog-head"><div><span class="eyebrow">A MOMENT FOR YOU</span><h2 id="entry-title">此刻，你的心情怎么样？</h2></div><button class="icon-button" type="button" data-close aria-label="关闭">×</button></div>
   <p class="muted">不用组织语言，先给此刻的感受一个位置。</p>
   <div id="form-moods" class="mood-row"></div>
+  <div id="entry-extras" data-expression-host="editor"></div>
   <fieldset><legend>和什么有关？<span>可选，可多选</span></legend><div id="form-tags" class="tag-options"></div></fieldset>
   <label for="entry-note" class="field-label">想留下一句话吗？<span>可选</span></label>
   <textarea id="entry-note" maxlength="500" rows="4" placeholder="发生了什么？你有什么感受或需要？"></textarea>

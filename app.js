@@ -14,7 +14,7 @@
     if (raw) {
       const saved = JSON.parse(raw);
       if (!saved || !Array.isArray(saved.entries)) throw new Error('Invalid local data');
-      entries = saved.entries.filter(C.validateEntry).map(window.AsciiCore.normalizeEntry);
+      entries = saved.entries.filter(C.validateEntry).map(window.AsciiCore.normalizeEntry).map(C.normalizeExtras);
       feedback = Array.isArray(saved.feedback) ? saved.feedback.filter(f => f && ['breath','sound','move'].includes(f.type) && FEEDBACK.includes(f.value) && Number.isFinite(new Date(f.date).getTime())).slice(-200) : [];
       if (entries.length !== saved.entries.length) storageIssue = '部分本地记录格式异常，已跳过显示。请先导出可读取的记录。';
     }
@@ -102,7 +102,7 @@
     const list=sortedEntries();
     return heading('收藏过的天气，都是自己。','每一次点选、对话与摆放，都有一幅属于当时的风景。','COLLECTED INNER WEATHER',`<button class="button primary" data-new-entry>${icon('plus')}写一条日记</button>`)+banner()+
     `<div class="page-tools"><span>共 ${list.length} 条${mode==='demo'?'示例':''}记录</span><span>按记录时间倒序</span></div>`+
-    (list.length?`<div class="journal-grid">${list.map(e=>`<article class="card journal-entry"><div class="entry-top">${face(e.mood)}<div><h3>${C.moods[e.mood-1].name}</h3><time datetime="${escape(e.date)}">${prettyDate(e.date,true)}</time></div></div>${window.IslandStudio.thumbnail(e)}<p class="note">${escape(e.note||'这一刻，先记下感受就足够了。')}</p><div class="entry-tags">${e.tags.map(t=>`<span class="tag">${escape(t)}</span>`).join('')}</div>${mode==='personal'?`<div class="entry-actions"><button data-edit="${escape(e.id)}">编辑</button><button class="delete" data-delete="${escape(e.id)}">删除</button></div>`:'<div class="entry-actions"><span class="subtle-link">虚构示例 · 不属于你的记录</span></div>'}</article>`).join('')}</div>`:`<section class="card">${empty()}</section>`);
+    (list.length?`<div class="journal-grid">${list.map(e=>`<article class="card journal-entry"><div class="entry-top">${face(e.mood)}<div><h3>${C.moods[e.mood-1].name}</h3><time datetime="${escape(e.date)}">${prettyDate(e.date,true)}</time></div></div>${window.IslandStudio.thumbnail(e)}${Expression.view(e)}<p class="note">${escape(e.note||'这一刻，先记下感受就足够了。')}</p><div class="entry-tags">${e.tags.map(t=>`<span class="tag">${escape(t)}</span>`).join('')}</div>${mode==='personal'?`<div class="entry-actions"><button data-edit="${escape(e.id)}">编辑</button><button class="delete" data-delete="${escape(e.id)}">删除</button></div>`:'<div class="entry-actions"><span class="subtle-link">虚构示例 · 不属于你的记录</span></div>'}</article>`).join('')}</div>`:`<section class="card">${empty()}</section>`);
   }
   function insightsView() {
     const s=C.summarize(activeEntries(),days);
@@ -123,6 +123,7 @@
       `<section class="care-intro">${icon('sun')}<div><h3>为此刻的你，留一点时间</h3><p>${rec.reason} 推荐来自简单的记录规则，你可以自由选择其他方式。</p></div></section><div class="care-grid">${Object.entries(careItems).map(([key,item])=>`<article class="card care-card"><div class="care-art ${key}">${icon(item.icon)}</div><h3>${item.title}</h3><p>${item.desc}</p><button class="button ${rec.type===key?'primary':'secondary'}" data-care="${key}">开始练习 ${icon('arrow')}</button><span class="care-meta">${item.meta}</span></article>`).join('')}</div><p class="care-reminder">练习不适合每一个时刻。你可以随时停止，或只是坐一会儿。呼吸练习保持自然呼吸、不屏息，出现不适请停止；轻活动以身体舒适为限。<br>这些是日常自我关怀工具，不提供诊断或治疗；如果困扰持续加重或影响生活，可以考虑寻求专业支持。</p>`;
   }
   function render() {
+    Expression.cancel();
     window.IslandStudio.stop();
     const main=$('#main-content');
     main.innerHTML=(storageIssue?`<div class="storage-warning" role="status">${escape(storageIssue)}</div>`:'')+({home:homeView,journal:journalView,insights:insightsView,care:careView}[page])();
@@ -130,8 +131,10 @@
     $('.local-badge').innerHTML=icon('lock')+(memoryOnly?'仅本次会话':'仅存于此浏览器');
     document.querySelectorAll('[data-page]').forEach(b=>{b.classList.toggle('active',b.dataset.page===page);if(b.dataset.page===page)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
     window.IslandStudio.mount();
+    Expression.mount();
   }
   function navigate(next) {
+    Expression.cancel();
     page=next;
     history.replaceState(null,'',`#${page}`);
     render();
@@ -151,14 +154,16 @@
     $('#note-count').textContent=$('#entry-note').value.length;
     $('#form-error').textContent='';
     $('#entry-hint').textContent=mode==='demo'?'保存后会进入你的私人记录，示例不会混入。记录保存在浏览器中，共用设备请注意隐私。':'只保存在当前浏览器。共用设备请注意隐私，清除浏览器数据会丢失记录。';
+    Expression.setEditor(entry||{});$('#entry-extras').innerHTML=Expression.html('editor');Expression.mount($('#entry-extras'));
     renderFormMoods();renderFormTags();
     $('#entry-dialog').showModal();
   }
   function deleteEntry(id) {
     if (!entries.some(e=>e.id===id)) return;
     if (!window.confirm('删除这条日记？删除后无法恢复。')) return;
+    const removed=entries.find(e=>e.id===id);
     entries=entries.filter(e=>e.id!==id);
-    const persisted=saveData();render();
+    const persisted=saveData();render();if(persisted&&removed)Expression.cleanupRemoved(removed);
     notify(persisted?'这条日记已删除。':'已从当前会话移除；浏览器保存失败，旧记录可能仍在。');
   }
   function openInfo(title,body) {
@@ -166,18 +171,20 @@
     $('#info-dialog').showModal();
   }
   function dataPanel() {
-    openInfo('你的记录，属于你自己。',`<div class="info-copy"><p>这个网站和源代码公开，但你填写的日记仅保存在当前浏览器中，不会上传 GitHub，也不会发送给 AI 或其他服务。</p><p><strong>请留意：</strong>本地记录未加密，共用设备的其他使用者可能看到；更换浏览器或清除浏览器数据后，记录不会跟随你。建议定期导出。</p><p>目前有 ${entries.length} 条私人日记、${feedback.length} 条练习反馈。虚构示例不计入，也不会导出。</p>${storageIssue?`<p>${escape(storageIssue)}</p>`:''}</div><div class="data-actions"><button class="button secondary" id="export-data">导出私人记录</button><button class="button danger" id="clear-data">清空私人数据</button></div>`);
+    openInfo('你的记录，属于你自己。',`<div class="info-copy"><p>这个网站和源代码公开，但你填写的日记、照片与语音仅保存在当前浏览器中，不会上传 GitHub，也不会发送给 AI 或其他服务。</p><p><strong>请留意：</strong>本地记录未加密，共用设备的其他使用者可能看到；更换浏览器或清除浏览器数据后，记录不会跟随你。建议定期导出。</p><p>目前有 ${entries.length} 条私人日记、${feedback.length} 条练习反馈。虚构示例不计入，也不会导出。完整备份会包含可读取的照片与语音。</p>${storageIssue?`<p>${escape(storageIssue)}</p>`:''}</div><div class="data-actions"><button class="button secondary" id="export-data">导出私人记录</button><button class="button danger" id="clear-data">清空私人数据</button></div>`);
   }
-  function exportData() {
+  async function exportData() {
     if (!entries.length&&!feedback.length) {notify('目前还没有私人记录。示例数据不会导出。');return;}
-    const blob=new Blob([JSON.stringify({app:'心屿',version:1,exportedAt:new Date().toISOString(),entries,feedback},null,2)],{type:'application/json;charset=utf-8'});
+    const backup=await LocalMedia.exportMedia(entries);
+    const blob=new Blob([JSON.stringify({app:'心屿',version:2,exportedAt:new Date().toISOString(),entries,feedback,media:backup.media,missingMedia:backup.missing},null,2)],{type:'application/json;charset=utf-8'});
     const url=URL.createObjectURL(blob); const a=document.createElement('a');
     a.href=url;a.download=`心屿-私人记录-${C.dayKey(new Date())}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
-    notify('已生成私人记录备份，请妥善保存下载文件。');
+    notify(backup.missing.length?'记录已导出，'+backup.missing.length+' 个附件无法读取，备份中已注明。':'已生成包含照片与语音的私人备份，请妥善保存。');
   }
-  function clearData() {
-    if (!window.confirm('清空此浏览器中的全部私人日记和练习反馈？此操作无法撤销，建议先导出。')) return;
-    try {localStorage.removeItem(STORAGE);window.IslandStudio.reset();entries=[];feedback=[];memoryOnly=false;storageIssue='';mode='personal';$('#info-dialog').close();render();notify('此浏览器中的私人数据已清空。');}
+  async function clearData() {
+    if (!window.confirm('清空此浏览器中的全部私人记录、照片、语音与练习反馈？此操作无法撤销，建议先保存草稿并导出备份。')) return;
+    Expression.cancel();Expression.resetContext('studio');Expression.resetContext('editor');let mediaCleared=true;try{await LocalMedia.clear();}catch{mediaCleared=false;}
+    try {localStorage.removeItem(STORAGE);window.IslandStudio.reset();entries=[];feedback=[];memoryOnly=false;storageIssue='';mode='personal';$('#info-dialog').close();render();notify(mediaCleared?'此浏览器中的私人记录与附件已清空。':'记录已清空，但附件未能删除，请在浏览器设置中清除本站数据。');}
     catch {notify('浏览器未允许清空数据，请使用浏览器设置清除本站数据。');}
   }
   function stopResources() {
@@ -280,7 +287,7 @@
     event.preventDefault();
     if (!formMood) {$('#form-error').textContent='先选一个最接近此刻的心情吧。';$('#form-moods button').focus();return;}
     const old=entries.find(e=>e.id===editingId);
-    const entry={...(old||{}),id:old?old.id:(crypto.randomUUID?crypto.randomUUID():`entry-${Date.now()}-${Math.random().toString(16).slice(2)}`),date:old?old.date:new Date().toISOString(),mood:formMood,tags:[...formTags],note:$('#entry-note').value.trim()};
+    const entry={...(old||{}),...Expression.getEditor(),id:old?old.id:(crypto.randomUUID?crypto.randomUUID():`entry-${Date.now()}-${Math.random().toString(16).slice(2)}`),date:old?old.date:new Date().toISOString(),mood:formMood,tags:[...formTags],note:$('#entry-note').value.trim()};
     if (!C.validateEntry(entry)) {$('#form-error').textContent='记录格式有误，请检查内容后重试。';return;}
     if (old) entries=entries.map(e=>e.id===entry.id?entry:e);else entries.push(entry);
     const persisted=saveData();mode='personal';selectedMood=null;
@@ -291,6 +298,8 @@
   document.addEventListener('visibilitychange',()=>{if(document.hidden&&session?.type==='sound'&&session.started&&!session.finished)finishSession();});
   window.addEventListener('pagehide',stopResources);
   window.addEventListener('hashchange',()=>{const hash=location.hash.slice(1);if(['home','journal','insights','care'].includes(hash)){page=hash;render();}});
+  Expression.connect({notify,getSaved:()=>entries});
+  $('#entry-dialog').addEventListener('close',()=>Expression.resetContext('editor'));
   window.IslandStudio.connect({
     getEntries:activeEntries,getMode:()=>mode,render,navigate,notify,
     saveMoment(moment){
