@@ -31,6 +31,10 @@
     const latest = [...entries].filter(validateEntry).sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
     if (!latest) return {type:'breath',reason:'给自己一分钟，轻轻回到当下。'};
     if (latest.tags.includes('睡眠')) return {type:'sound',reason:'你最近提到了睡眠，可以试着听一会儿舒缓声景。'};
+    if (latest.need==='迈出一步') return {type:'move',reason:'你想迈出一步，可以从一个舒适的小动作开始。'};
+    if (latest.need==='有人陪伴') return {type:'move',reason:'你提到了想有人陪伴。也许可以邀请信任的人一起走走，或先做一点轻活动。'};
+    if (latest.need==='被理解') return {type:'breath',reason:'你提到了想被理解。先给自己一点空间，也可以试着把需要告诉信任的人。'};
+    if (latest.need==='休息一下'||latest.need==='留一点白') return {type:'breath',reason:'你想给自己留一点空间，可以先停下来，按舒适的节奏呼吸。'};
     if (latest.mood<=2) return {type:'breath',reason:'你最近的记录有些疲惫，也许可以先停下来，留意自己的呼吸。'};
     return {type:'move',reason:'给身体一点轻松的活动，也是一种照顾自己的方式。'};
   }

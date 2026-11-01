@@ -14,7 +14,7 @@
     if (raw) {
       const saved = JSON.parse(raw);
       if (!saved || !Array.isArray(saved.entries)) throw new Error('Invalid local data');
-      entries = saved.entries.filter(C.validateEntry);
+      entries = saved.entries.filter(C.validateEntry).map(window.AsciiCore.normalizeEntry);
       feedback = Array.isArray(saved.feedback) ? saved.feedback.filter(f => f && ['breath','sound','move'].includes(f.type) && FEEDBACK.includes(f.value) && Number.isFinite(new Date(f.date).getTime())).slice(-200) : [];
       if (entries.length !== saved.entries.length) storageIssue = '部分本地记录格式异常，已跳过显示。请先导出可读取的记录。';
     }
@@ -97,24 +97,12 @@
     if (!latest.length) return `<p class="muted" style="margin-top:20px">还没有记录，今天可以从一个感受开始。</p>`;
     return `<div class="recent-list">${latest.map(e=>`<div class="mini-entry">${face(e.mood)}<div class="entry-preview"><h3><time>${prettyDate(e.date)}</time>${C.moods[e.mood-1].name}</h3><p>${escape(e.note||'为此刻的感受留了一个位置。')}</p></div></div>`).join('')}</div>`;
   }
-  const art = `<svg class="island-art" viewBox="0 0 200 220" aria-hidden="true"><path d="M-10 207c36-53 113-64 228-31v44H-10" fill="#ccd7b5"/><path d="M0 220c50-45 125-41 210-7" fill="#b8c9a0"/><path d="M124 191c-5-38-3-79 1-117" stroke="#8e9b72" stroke-width="3" fill="none"/><path d="M126 106C89 91 89 57 103 48c30 4 43 32 23 58" fill="#a0b487"/><path d="M127 133c-3-35 17-58 44-55 10 28-9 54-44 55" fill="#b5c49a"/><path d="M125 163c-34-3-54-24-48-48 32-5 53 18 48 48" fill="#a5b98b"/><circle cx="64" cy="55" r="26" fill="#f0e9c8"/><path d="M15 144c17-8 38-8 52 2" stroke="#c6d1b1" stroke-width="2" fill="none"/></svg>`;
-  function homeView() {
-    const summary=C.summarize(activeEntries(),days);
-    const rec=C.recommend(activeEntries());
-    return heading('今天，也照顾一下自己。','无论此刻是什么感受，你都可以在这里停留。','YOUR DAILY PAUSE')+banner()+
-    `<div class="home-grid"><div class="main-column">
-      <section class="card checkin-card"><div class="card-header"><h2 class="checkin-title">此刻，你的心情怎么样？</h2><span class="small-label">与自己相处 30 秒</span></div><p class="card-subtitle">每一种情绪，都值得被好好看见。</p><div class="mood-row">${moodButtons(selectedMood,'quick')}</div><div class="checkin-bottom"><p>不用想太多，跟随此刻的感受就好。</p><button class="button primary" data-new-entry>记录此刻 ${icon('arrow')}</button></div></section>
-      <section class="card"><div class="card-header"><h2>情绪的晴与雨</h2>${segments()}</div><p class="card-subtitle">已记录 ${summary.recordedDays} 天，留意那些细微的变化。</p>${chart(summary)}<button class="text-button" data-go="insights">看看我的情绪洞察 ${icon('arrow')}</button></section>
-      <section class="card"><div class="card-header"><h2>最近的小小记录</h2><button class="text-button" data-go="journal">全部日记 ${icon('arrow')}</button></div>${miniEntries()}</section>
-    </div><aside class="side-column"><section class="card hero-quote"><span class="eyebrow">A GENTLE REMINDER</span><h2>不必时刻晴朗，<br>阴天也有它的温柔。</h2><p>允许自己，按照自己的节奏生长。</p>${art}</section>
-      <section class="card breath-preview"><span class="eyebrow">YOUR LITTLE MOMENT</span><div class="breath-orb">${icon(rec.type==='sound'?'wave':rec.type==='move'?'move':'leaf')}</div><h3>${rec.type==='sound'?'听一会儿，慢下来':rec.type==='move'?'让身体，轻轻动一动':'停一下，深呼吸'}</h3><p>${rec.reason}</p><button class="button" data-care="${rec.type}">开始一个小练习 ${icon('arrow')}</button><span class="duration">可随时结束 · 不必完成任务</span></section>
-    </aside></div>`;
-  }
+  function homeView() { return window.IslandStudio.home(); }
   function journalView() {
     const list=sortedEntries();
-    return heading('给感受，一个安放的地方。','这里装着你的日常，也装着慢慢认识自己的过程。','LITTLE NOTES, REAL FEELINGS',`<button class="button primary" data-new-entry>${icon('plus')}写一条日记</button>`)+banner()+
+    return heading('收藏过的天气，都是自己。','每一次点选、对话与摆放，都有一幅属于当时的风景。','COLLECTED INNER WEATHER',`<button class="button primary" data-new-entry>${icon('plus')}写一条日记</button>`)+banner()+
     `<div class="page-tools"><span>共 ${list.length} 条${mode==='demo'?'示例':''}记录</span><span>按记录时间倒序</span></div>`+
-    (list.length?`<div class="journal-grid">${list.map(e=>`<article class="card journal-entry"><div class="entry-top">${face(e.mood)}<div><h3>${C.moods[e.mood-1].name}</h3><time datetime="${escape(e.date)}">${prettyDate(e.date,true)}</time></div></div><p class="note">${escape(e.note||'这一刻，先记下感受就足够了。')}</p><div class="entry-tags">${e.tags.map(t=>`<span class="tag">${escape(t)}</span>`).join('')}</div>${mode==='personal'?`<div class="entry-actions"><button data-edit="${escape(e.id)}">编辑</button><button class="delete" data-delete="${escape(e.id)}">删除</button></div>`:'<div class="entry-actions"><span class="subtle-link">虚构示例 · 不属于你的记录</span></div>'}</article>`).join('')}</div>`:`<section class="card">${empty()}</section>`);
+    (list.length?`<div class="journal-grid">${list.map(e=>`<article class="card journal-entry"><div class="entry-top">${face(e.mood)}<div><h3>${C.moods[e.mood-1].name}</h3><time datetime="${escape(e.date)}">${prettyDate(e.date,true)}</time></div></div>${window.IslandStudio.thumbnail(e)}<p class="note">${escape(e.note||'这一刻，先记下感受就足够了。')}</p><div class="entry-tags">${e.tags.map(t=>`<span class="tag">${escape(t)}</span>`).join('')}</div>${mode==='personal'?`<div class="entry-actions"><button data-edit="${escape(e.id)}">编辑</button><button class="delete" data-delete="${escape(e.id)}">删除</button></div>`:'<div class="entry-actions"><span class="subtle-link">虚构示例 · 不属于你的记录</span></div>'}</article>`).join('')}</div>`:`<section class="card">${empty()}</section>`);
   }
   function insightsView() {
     const s=C.summarize(activeEntries(),days);
@@ -135,11 +123,13 @@
       `<section class="care-intro">${icon('sun')}<div><h3>为此刻的你，留一点时间</h3><p>${rec.reason} 推荐来自简单的记录规则，你可以自由选择其他方式。</p></div></section><div class="care-grid">${Object.entries(careItems).map(([key,item])=>`<article class="card care-card"><div class="care-art ${key}">${icon(item.icon)}</div><h3>${item.title}</h3><p>${item.desc}</p><button class="button ${rec.type===key?'primary':'secondary'}" data-care="${key}">开始练习 ${icon('arrow')}</button><span class="care-meta">${item.meta}</span></article>`).join('')}</div><p class="care-reminder">练习不适合每一个时刻。你可以随时停止，或只是坐一会儿。呼吸练习保持自然呼吸、不屏息，出现不适请停止；轻活动以身体舒适为限。<br>这些是日常自我关怀工具，不提供诊断或治疗；如果困扰持续加重或影响生活，可以考虑寻求专业支持。</p>`;
   }
   function render() {
+    window.IslandStudio.stop();
     const main=$('#main-content');
     main.innerHTML=(storageIssue?`<div class="storage-warning" role="status">${escape(storageIssue)}</div>`:'')+({home:homeView,journal:journalView,insights:insightsView,care:careView}[page])();
     $('#mode-toggle').textContent=mode==='demo'?'示例体验 · 切换我的记录':'我的记录 · 查看示例';
     $('.local-badge').innerHTML=icon('lock')+(memoryOnly?'仅本次会话':'仅存于此浏览器');
     document.querySelectorAll('[data-page]').forEach(b=>{b.classList.toggle('active',b.dataset.page===page);if(b.dataset.page===page)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
+    window.IslandStudio.mount();
   }
   function navigate(next) {
     page=next;
@@ -187,7 +177,7 @@
   }
   function clearData() {
     if (!window.confirm('清空此浏览器中的全部私人日记和练习反馈？此操作无法撤销，建议先导出。')) return;
-    try {localStorage.removeItem(STORAGE);entries=[];feedback=[];memoryOnly=false;storageIssue='';mode='personal';$('#info-dialog').close();render();notify('此浏览器中的私人数据已清空。');}
+    try {localStorage.removeItem(STORAGE);window.IslandStudio.reset();entries=[];feedback=[];memoryOnly=false;storageIssue='';mode='personal';$('#info-dialog').close();render();notify('此浏览器中的私人数据已清空。');}
     catch {notify('浏览器未允许清空数据，请使用浏览器设置清除本站数据。');}
   }
   function stopResources() {
@@ -290,7 +280,7 @@
     event.preventDefault();
     if (!formMood) {$('#form-error').textContent='先选一个最接近此刻的心情吧。';$('#form-moods button').focus();return;}
     const old=entries.find(e=>e.id===editingId);
-    const entry={id:old?old.id:(crypto.randomUUID?crypto.randomUUID():`entry-${Date.now()}-${Math.random().toString(16).slice(2)}`),date:old?old.date:new Date().toISOString(),mood:formMood,tags:[...formTags],note:$('#entry-note').value.trim()};
+    const entry={...(old||{}),id:old?old.id:(crypto.randomUUID?crypto.randomUUID():`entry-${Date.now()}-${Math.random().toString(16).slice(2)}`),date:old?old.date:new Date().toISOString(),mood:formMood,tags:[...formTags],note:$('#entry-note').value.trim()};
     if (!C.validateEntry(entry)) {$('#form-error').textContent='记录格式有误，请检查内容后重试。';return;}
     if (old) entries=entries.map(e=>e.id===entry.id?entry:e);else entries.push(entry);
     const persisted=saveData();mode='personal';selectedMood=null;
@@ -301,6 +291,15 @@
   document.addEventListener('visibilitychange',()=>{if(document.hidden&&session?.type==='sound'&&session.started&&!session.finished)finishSession();});
   window.addEventListener('pagehide',stopResources);
   window.addEventListener('hashchange',()=>{const hash=location.hash.slice(1);if(['home','journal','insights','care'].includes(hash)){page=hash;render();}});
+  window.IslandStudio.connect({
+    getEntries:activeEntries,getMode:()=>mode,render,navigate,notify,
+    saveMoment(moment){
+      const entry={...moment,id:crypto.randomUUID?crypto.randomUUID():'moment-'+Date.now(),date:new Date().toISOString()};
+      if(!C.validateEntry(entry)){notify('这片天气暂时无法保存，请检查记录。');return false;}
+      entries.push(entry);const persisted=saveData();mode='personal';selectedMood=null;render();
+      notify(persisted?'这片天气，已经好好收藏。':'仅保留在本次会话，请导出备份。');return true;
+    }
+  });
   $('#current-date').textContent=new Date().toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
   render();
 })();
