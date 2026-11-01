@@ -3,27 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#111810">
+  <meta name="theme-color" content="#f7f3ea">
   <meta name="description" content="心屿：记录情绪变化，用一个小行动照顾自己。私人记录保存在当前浏览器。">
-  <title>心屿 // ASCII 情绪终端</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23111810'/%3E%3Ctext x='3' y='42' font-family='monospace' font-size='32' fill='%23bed997'%3E%5B~%5D%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="./styles.css?v=0.4">
-  <script src="./core.js?v=0.4" defer></script>
-  <link rel="stylesheet" href="./island.css?v=0.4">
-  <script src="./ascii-core.js?v=0.4" defer></script>
-  <script src="./island.js?v=0.4" defer></script>
-  <link rel="stylesheet" href="./terminal.css?v=0.4">
-  <script src="./app.js?v=0.4" defer></script>
-  <script src="./terminal-ui.js?v=0.4" defer></script>
+  <title>心屿 · 把今天轻轻安放</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='20' fill='%234e6955'/%3E%3Cpath d='M32 48V26M32 35C12 36 12 15 16 14c16 0 19 14 16 21Zm0-7c0-12 9-19 19-17 2 14-7 21-19 20' fill='none' stroke='%23f8edcb' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./styles.css?v=0.5">
+  <script src="./core.js?v=0.5" defer></script>
+  <link rel="stylesheet" href="./garden.css?v=0.5">
+  <script src="./ascii-core.js?v=0.5" defer></script>
+  <script src="./garden-art.js?v=0.5" defer></script>
+  <script src="./island.js?v=0.5" defer></script>
+  <script src="./app.js?v=0.5" defer></script>
 </head>
 <body>
-
+<svg class="svg-defs" aria-hidden="true"><defs>
+ <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10H3ZM9 20v-7h6v7"/></symbol>
+ <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 4h13a3 3 0 0 1 3 3v14H6a2 2 0 0 1-2-2ZM4 17h16M8 8h8M8 11h5"/></symbol>
+ <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 3v17h17M8 15v-4m5 4V7m5 8v-6"/></symbol>
+ <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 20c1-7 4-11 12-15M6 17C-1 4 12 2 21 3c1 12-5 18-15 14Z"/></symbol>
+ <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 15v2"/></symbol>
+ <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+ <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
+ <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></symbol>
+ <symbol id="i-wave" viewBox="0 0 24 24"><path d="M3 8c3-5 6 5 9 0s6 5 9 0M3 15c3-5 6 5 9 0s6 5 9 0"/></symbol>
+ <symbol id="i-move" viewBox="0 0 24 24"><circle cx="14" cy="4" r="2"/><path d="m8 22 3-7-3-4 4-4 4 4 5 1M3 10l5-1m3 6 6 2 1 5"/></symbol>
+</defs></svg>
 <div class="app-shell">
  <aside class="sidebar">
-  <a class="brand" href="#home" aria-label="心屿首页"><pre aria-hidden="true">+  M I N D  /  I S L A N D  +
-|  a quiet place to exist  |
-+--------------------------+</pre><span>心屿 / 情绪与自我关怀</span></a>
-  <div class="sidebar-label">用符号，和自己说说话</div>
+  <a class="brand" href="#home" aria-label="心屿首页"><span class="brand-mark" aria-hidden="true"><svg><use href="#i-leaf"/></svg></span><span>心屿<small>MIND ISLAND</small></span></a>
+  <div class="sidebar-label">慢一点，也很好</div>
   <nav aria-label="主导航">
    <button class="nav-item active" data-page="home"><svg><use href="#i-home"/></svg><span>我的小岛</span><span class="nav-dot"></span></button>
    <button class="nav-item" data-page="journal"><svg><use href="#i-book"/></svg><span>天气标本</span></button>
@@ -32,7 +40,7 @@
   </nav>
   <div class="sidebar-note"><div class="tiny-sprout">✧</div><p>每一种情绪，<br>都有被看见的意义。</p><span>慢慢来，也没关系。</span></div>
   <button class="privacy-button" id="data-button"><svg><use href="#i-lock"/></svg>隐私与数据<span>↗</span></button>
-  <div class="prototype-label">ASCII TERMINAL / V0.4</div>
+  <div class="prototype-label">自然手记 · V0.5</div>
  </aside>
  <div class="workspace">
   <header class="topbar"><span id="current-date"></span><div class="top-actions"><button id="mode-toggle" class="mode-toggle" aria-label="切换示例数据与我的记录"></button><span class="local-badge"><svg><use href="#i-lock"/></svg>仅存于此浏览器</span><span class="avatar" aria-hidden="true">屿</span></div></header>
