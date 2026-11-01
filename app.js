@@ -4,7 +4,7 @@
   const C = window.MindCore;
   const $ = (s, root = document) => root.querySelector(s);
   const escape = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-  const icon = name => `<svg aria-hidden="true"><use href="#i-${name}"/></svg>`;
+  const icon = name => '<span class="ascii-icon" aria-hidden="true">'+({home:'~',book:'[]',chart:'|#|',leaf:'*',lock:'[L]',plus:'+',arrow:'->',sun:'(*)',wave:'~',move:'o/'}[name]||'*')+'</span>';
   const STORAGE = 'mind-island.v1';
   const FEEDBACK = ['有帮助', '一般', '不适合'];
   let storageIssue = '';
@@ -51,8 +51,8 @@
     toastTimeout = setTimeout(() => toast.classList.remove('show'), 4500);
   }
   function face(value, extraClass='') {
-    const m = C.moods.find(m => m.value === value) || C.moods[2];
-    return `<svg class="face ${extraClass}" viewBox="0 0 48 48" aria-hidden="true"><circle class="face-fill" cx="24" cy="24" r="22" fill="${m.color}" fill-opacity=".23"/><circle cx="24" cy="24" r="20" stroke="${m.color}" fill="none"/><path d="M17 17v2m14-2v2" stroke="#687263"/><path d="${m.face}" stroke="#687263" fill="${value===5?'#687263':'none'}"/></svg>`;
+    const faces=['( ._. )','( -_- )','( . . )','( ^_^ )','(*^_^*)'];
+    return '<span class="face ascii-face '+extraClass+'" aria-hidden="true">'+faces[(value||3)-1]+'</span>';
   }
   function moodButtons(selected, context) {
     return C.moods.map(m => `<button type="button" class="mood-choice ${selected===m.value?'selected':''}" data-${context}-mood="${m.value}" aria-pressed="${selected===m.value}">${face(m.value)}<span>${m.name}</span></button>`).join('');
@@ -73,24 +73,21 @@
     return `<div class="segments" aria-label="查看时间范围"><button class="segment ${days===7?'active':''}" data-days="7" aria-pressed="${days===7}">近 7 天</button><button class="segment ${days===30?'active':''}" data-days="30" aria-pressed="${days===30}">近 30 天</button></div>`;
   }
   function chart(summary) {
-    const width=520, height=160, left=42, right=12, top=12, bottom=30;
-    const xs = i => left+i*(width-left-right)/Math.max(summary.points.length-1,1);
-    const ys = value => top+(5-value)*(height-top-bottom)/4;
-    let svg = [1,3,5].map((value,i) => `<line x1="${left}" x2="${width-right}" y1="${ys(value)}" y2="${ys(value)}" stroke="#e7eadd" stroke-dasharray="3 5"/><text x="0" y="${ys(value)+4}">${['低落','平静','开心'][i]}</text>`).join('');
-    let previous = null;
-    summary.points.forEach((p,i) => {
-      const x=xs(i);
-      if (p.value !== null) {
-        const y=ys(p.value);
-        if (previous) svg+=`<line x1="${previous.x}" y1="${previous.y}" x2="${x}" y2="${y}" stroke="#9aaf86" stroke-width="2.5"/>`;
-        svg+=`<circle cx="${x}" cy="${y}" r="4" fill="#fffefb" stroke="#8fa77c" stroke-width="2"><title>${p.label}：平均感受 ${p.value.toFixed(1)} / 5</title></circle>`;
-        previous={x,y};
-      } else previous=null;
-      if (summary.points.length===7 || i%5===0 || i===summary.points.length-1) svg+=`<text x="${x}" y="${height-7}" text-anchor="${i===0?'start':i===summary.points.length-1?'end':'middle'}">${p.label}</text>`;
+    const width=42,height=9,grid=Array.from({length:height},()=>Array(width).fill(' '));
+    [0,4,8].forEach(y=>{for(let x=0;x<width;x++)grid[y][x]='.';});
+    let previous=null;
+    summary.points.forEach((p,i)=>{
+      if(p.value===null){previous=null;return;}
+      const x=Math.round(i*(width-1)/Math.max(1,summary.points.length-1)),y=Math.round((5-p.value)*2);
+      if(previous){const dx=x-previous.x,dy=y-previous.y,steps=Math.max(Math.abs(dx),Math.abs(dy));for(let s=1;s<steps;s++){const px=Math.round(previous.x+dx*s/steps),py=Math.round(previous.y+dy*s/steps);grid[py][px]=dy===0?'-':dy<0?'/':String.fromCharCode(92);}}
+      grid[y][x]='o';previous={x,y};
     });
-    if (!summary.count) svg+=`<text x="${width/2+10}" y="76" text-anchor="middle">还没有记录，变化会从这里慢慢出现</text>`;
-    const textSummary=summary.points.filter(p=>p.value!==null).map(p=>`${p.label} ${p.value.toFixed(1)}/5`).join('；');
-    return `<div class="chart-wrap"><svg class="mood-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escape(textSummary||'尚无情绪记录')}">${svg}</svg></div><p class="chart-note">每日点位为当天记录的平均感受，缺失日期不补值。仅呈现你记录的片段，不是心理健康评分。</p>`;
+    const rows=grid.map((r,i)=>(i===0?'5':i===4?'3':i===8?'1':' ')+' | '+r.join(''));
+    rows.push('  + '+'-'.repeat(width));
+    const first=summary.points[0].label,last=summary.points.at(-1).label;
+    rows.push('    '+first+' '.repeat(width-first.length-last.length)+last);
+    const label=summary.points.filter(p=>p.value!==null).map(p=>p.label+' '+p.value.toFixed(1)+'/5').join('；')||'尚无情绪记录';
+    return '<pre class="ascii-chart" role="img" aria-label="'+escape(label)+'">'+escape(rows.join('\n'))+'</pre><p class="chart-note">o = 记录的感受 / 1 低落 · 3 平静 · 5 开心<br>点位为当天记录的平均感受；缺失日期留白。仅呈现记录片段，不是心理健康评分。'+(!summary.count?'<br>&gt; 还没有记录，从一个感受开始。':'')+'</p>';
   }
   function miniEntries() {
     const latest=sortedEntries().slice(0,3);
@@ -109,7 +106,7 @@
     const top=s.factors[0];
     return heading('看见情绪，也看见自己。','从记录中寻找线索，用好奇代替评判。','NOTICE YOUR OWN RHYTHM')+banner()+
       `<div class="page-tools"><span>关于最近 ${days} 天的记录</span>${segments()}</div><div class="stats-row"><section class="card stat-card"><p>留下的情绪记录</p><strong>${s.count}<small> 条</small></strong><small>每一条都是看见自己的开始</small></section><section class="card stat-card"><p>有记录的日子</p><strong>${s.recordedDays}<small> 天</small></strong><small>不用每天来，也不会断签</small></section><section class="card stat-card"><p>最常提到的情境</p><strong style="font-family:inherit;font-size:25px">${top?escape(top[0]):'待发现'}</strong><small>${top?`${s.count} 条记录中出现 ${top[1]} 次`:'记录之后慢慢了解'}</small></section></div>
-      <div class="insights-grid"><section class="card"><div class="card-header"><h2>情绪变化</h2><span class="small-label">${mode==='demo'?'示例数据':'我的记录'}</span></div>${chart(s)}</section><section class="card"><h2 style="font-size:16px">哪些情境经常出现？</h2><p class="card-subtitle">仅统计你主动选择的标签</p>${s.factors.length?s.factorDetails.map(({tag,count,tired,calm,pleasant})=>`<div class="factor-row"><div class="factor-caption"><span>${escape(tag)}</span><span>${count} / ${s.count} 条</span></div><div class="factor-track"><span style="width:${count/s.count*100}%"></span></div><p class="factor-detail">低落 / 有点累 ${tired} 条 · 平静 ${calm} 条 · 还不错 / 很开心 ${pleasant} 条</p></div>`).join(''):'<p class="muted" style="margin-top:25px">还没有情境标签，下次记录时可以试着选一个。</p>'}<p class="chart-note" style="margin-top:20px">同一条记录可以包含多个情境，比例之和可能超过 100%。</p></section></div>
+      <div class="insights-grid"><section class="card"><div class="card-header"><h2>情绪变化</h2><span class="small-label">${mode==='demo'?'示例数据':'我的记录'}</span></div>${chart(s)}</section><section class="card"><h2 style="font-size:16px">哪些情境经常出现？</h2><p class="card-subtitle">仅统计你主动选择的标签</p>${s.factors.length?s.factorDetails.map(({tag,count,tired,calm,pleasant})=>`<div class="factor-row"><div class="factor-caption"><span>${escape(tag)}</span><span>${count} / ${s.count} 条</span></div><pre class="ascii-meter">[${"#".repeat(Math.round(count/s.count*20))}${".".repeat(20-Math.round(count/s.count*20))}] ${count}/${s.count}</pre><p class="factor-detail">低落 / 有点累 ${tired} 条 · 平静 ${calm} 条 · 还不错 / 很开心 ${pleasant} 条</p></div>`).join(''):'<p class="muted" style="margin-top:25px">还没有情境标签，下次记录时可以试着选一个。</p>'}<p class="chart-note" style="margin-top:20px">同一条记录可以包含多个情境，比例之和可能超过 100%。</p></section></div>
       <div class="insight-explainer">${top?`在你最近 ${days} 天的 ${s.count} 条记录中，「${escape(top[0])}」出现了 ${top[1]} 次。你可以回看这些日记，留意当时发生了什么，以及自己需要什么。`:'数据还少时，不急着下结论。先从记录一些日常开始，也欢迎记下轻松或开心的时刻。'}<br>情境同时出现，不代表它导致了某种情绪；这些线索不能用于诊断。</div>`;
   }
   const careItems = {
@@ -189,7 +186,7 @@
     const item=careItems[type];
     if (!item) return;
     session={type,started:false,finished:false,startTime:null,duration:type==='breath'?60:type==='sound'?300:120};
-    $('#care-dialog-body').innerHTML=`<div class="dialog-head"><div><span class="eyebrow">A LITTLE CARE FOR YOU</span><h2 id="care-title">${item.title}</h2></div><button class="icon-button" data-close aria-label="关闭练习">×</button></div><div class="session-center">${type==='breath'?'<div class="session-orb" id="session-orb"><strong id="breath-label">准备好了</strong><span>按舒适节奏呼吸</span></div>':type==='sound'?'<div class="sound-wave" id="sound-wave" aria-hidden="true">'+Array(13).fill('<i></i>').join('')+'</div>':'<ol class="move-steps"><li>让双脚落地，留意脚下的支撑，慢慢放松肩膀。</li><li>在舒适范围内，轻轻舒展手臂和肩颈；不需要拉到很紧。</li><li>如果方便，起身走几步，看看窗外，给自己一点空间。</li></ol>'}<p class="muted">${type==='breath'?'跟随 4 秒吸气、6 秒呼气的提示，也可以按自己的自然节奏。无需屏息或深吸气，不舒服时请随时停止。':type==='sound'?'这里播放的是浏览器本地合成的柔和声景。请先调低设备音量，点击下方按钮才会播放。':'动作以身体舒适为限，也可以保持坐姿完成。任何不适，都可以停下来。'}</p><div class="time-display" id="session-time">${type==='breath'?'1 分钟':type==='sound'?'5 分钟':'约 2 分钟'} · 随时可以结束</div><button class="button primary" id="session-action">${type==='sound'?'开启声景':'开始练习'}</button><div id="session-feedback"></div></div>`;
+    $('#care-dialog-body').innerHTML=`<div class="dialog-head"><div><span class="eyebrow">A LITTLE CARE FOR YOU</span><h2 id="care-title">${item.title}</h2></div><button class="icon-button" data-close aria-label="关闭练习">×</button></div><div class="session-center">${type==='breath'?'<div class="session-orb" id="session-orb"><pre class="ascii-breath" id="breath-ascii" aria-hidden="true">       . . . . .       &#10;    .             .    &#10;  .      BREATHE     .  &#10;    .             .    &#10;       . . . . .       </pre><strong id="breath-label">准备好了</strong><span>按舒适节奏呼吸</span></div>':type==='sound'?'<div class="sound-wave" id="sound-wave" aria-hidden="true"><pre class="ascii-sound" id="ascii-sound">     .      .      .     &#10;  .  |  .   |   .  |  .  &#10; -|--|--|---|---|--|--|--&#10;  .  |  .   |   .  |  .  &#10;     .      .      .     </pre>'+Array(13).fill('<i></i>').join('')+'</div>':'<ol class="move-steps"><li>让双脚落地，留意脚下的支撑，慢慢放松肩膀。</li><li>在舒适范围内，轻轻舒展手臂和肩颈；不需要拉到很紧。</li><li>如果方便，起身走几步，看看窗外，给自己一点空间。</li></ol>'}<p class="muted">${type==='breath'?'跟随 4 秒吸气、6 秒呼气的提示，也可以按自己的自然节奏。无需屏息或深吸气，不舒服时请随时停止。':type==='sound'?'这里播放的是浏览器本地合成的柔和声景。请先调低设备音量，点击下方按钮才会播放。':'动作以身体舒适为限，也可以保持坐姿完成。任何不适，都可以停下来。'}</p><div class="time-display" id="session-time">${type==='breath'?'1 分钟':type==='sound'?'5 分钟':'约 2 分钟'} · 随时可以结束</div><button class="button primary" id="session-action">${type==='sound'?'开启声景':'开始练习'}</button><div id="session-feedback"></div></div>`;
     $('#care-dialog').showModal();
   }
   async function startSound() {
@@ -230,6 +227,7 @@
     if (session.type==='breath') {
       const inhale=elapsed%10<4;
       $('#breath-label').textContent=inhale?'轻轻吸气':'慢慢呼气';
+      const graphic=$('#breath-ascii');if(graphic)graphic.textContent=inhale?'       . . . . .       \n    .             .    \n  .       IN        .  \n    .             .    \n       . . . . .       ':'        . . .        \n      .       .      \n     .   OUT   .     \n      .       .      \n        . . .        ';
       $('#session-orb').classList.toggle('inhale',inhale);$('#session-orb').classList.toggle('exhale',!inhale);
     }
     if (left===0) finishSession();
